@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CodeShare – Code veröffentlichen</title>
 
-<!-- Highlight.js für Syntax-Highlighting -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
@@ -20,6 +19,7 @@
     --accent: #4f8cff;
     --accent-hover: #3a74e0;
     --danger: #ff5c5c;
+    --ok: #5ddb8a;
   }
   * { box-sizing: border-box; }
   body {
@@ -30,15 +30,11 @@
     line-height: 1.5;
   }
   header {
-    padding: 28px 20px 10px;
+    padding: 28px 20px 16px;
     text-align: center;
     border-bottom: 1px solid var(--border);
   }
-  header h1 {
-    margin: 0 0 6px;
-    font-size: 1.7rem;
-    letter-spacing: -0.5px;
-  }
+  header h1 { margin: 0 0 6px; font-size: 1.7rem; letter-spacing: -0.5px; }
   header p { margin: 0; color: var(--muted); font-size: 0.95rem; }
 
   main {
@@ -51,13 +47,55 @@
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 20px;
     margin-bottom: 28px;
+    overflow: hidden;
   }
+
+  /* ---- Collapsible mit grid-template-rows (funktioniert für BELIEBIG große Inhalte) ---- */
+  .collapsible-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+    transition: background .15s;
+  }
+  .collapsible-head:hover { background: var(--panel-2); }
+  .collapsible-head h2 {
+    font-size: 1.1rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .collapsible-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .3s ease;
+  }
+  .collapsible-body > .collapsible-inner {
+    overflow: hidden;
+    padding: 0 20px;
+  }
+  .collapsible.open > .collapsible-body { grid-template-rows: 1fr; }
+  .collapsible.open > .collapsible-body > .collapsible-inner { padding-bottom: 20px; }
+
+  .chevron {
+    width: 18px;
+    height: 18px;
+    color: var(--muted);
+    transition: transform .25s ease;
+    flex-shrink: 0;
+  }
+  .collapsible.open .chevron,
+  .snippet.open .chevron { transform: rotate(90deg); }
 
   label {
     display: block;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--muted);
     margin-bottom: 6px;
     font-weight: 600;
@@ -76,9 +114,7 @@
     outline: none;
     transition: border-color .15s;
   }
-  input[type="text"]:focus, select:focus, textarea:focus {
-    border-color: var(--accent);
-  }
+  input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--accent); }
   textarea {
     font-family: "Fira Code", "Consolas", "Menlo", monospace;
     font-size: 0.9rem;
@@ -112,21 +148,11 @@
   .btn:hover { background: var(--accent-hover); }
   .btn:disabled { opacity: .6; cursor: not-allowed; }
 
-  .status {
-    margin-top: 12px;
-    font-size: 0.9rem;
-    min-height: 1.2em;
-  }
-  .status.ok { color: #5ddb8a; }
+  .status { margin-top: 12px; font-size: 0.9rem; min-height: 1.2em; }
+  .status.ok { color: var(--ok); }
   .status.err { color: var(--danger); }
 
-  h2 {
-    font-size: 1.2rem;
-    margin: 0 0 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+  h2.list-title { font-size: 1.2rem; margin: 0; display: flex; align-items: center; gap: 8px; }
   .count-badge {
     font-size: 0.75rem;
     background: var(--panel-2);
@@ -137,6 +163,7 @@
     font-weight: 500;
   }
 
+  /* ---- Snippet ---- */
   .snippet {
     background: var(--panel);
     border: 1px solid var(--border);
@@ -149,33 +176,97 @@
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 8px;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    background: var(--panel-2);
+    gap: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background .15s;
   }
-  .snippet-title { font-weight: 600; font-size: 1rem; }
-  .snippet-meta { font-size: 0.78rem; color: var(--muted); }
+  .snippet-head:hover { background: var(--panel-2); }
+  .snippet-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+  .snippet-title {
+    font-weight: 600;
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .snippet-meta { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+  .snippet-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
   .lang-tag {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-weight: 700;
     background: rgba(79,140,255,.15);
     color: var(--accent);
-    padding: 2px 8px;
+    padding: 3px 8px;
     border-radius: 6px;
+    white-space: nowrap;
   }
-  .snippet pre {
+
+  .stats {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .stats span {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    padding: 1px 7px;
+    border-radius: 4px;
+  }
+
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 0;
+    transition: all .15s;
+  }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .icon-btn svg { width: 15px; height: 15px; }
+  .icon-btn.del:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* ---- Snippet Body: grid-template-rows statt max-height ---- */
+  .snippet-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .3s ease;
+  }
+  .snippet-body > .snippet-body-inner {
+    overflow: hidden;
+    border-top: 1px solid transparent;
+    transition: border-color .3s ease;
+  }
+  .snippet.open > .snippet-body { grid-template-rows: 1fr; }
+  .snippet.open > .snippet-body > .snippet-body-inner {
+    border-top-color: var(--border);
+    overflow: visible; /* Code scrollt nicht ab */
+  }
+  .snippet-body pre {
     margin: 0;
     padding: 16px;
     overflow-x: auto;
     font-size: 0.85rem;
   }
-  .snippet pre code.hljs {
+  .snippet-body pre code.hljs {
     background: transparent;
     padding: 0;
   }
+
   .empty {
     text-align: center;
     color: var(--muted);
@@ -183,86 +274,107 @@
     border: 1px dashed var(--border);
     border-radius: 12px;
   }
-  .del-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    border-radius: 6px;
-    padding: 4px 10px;
-    font-size: 0.78rem;
-    cursor: pointer;
+
+  .copy-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(60px);
+    background: var(--panel-2);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: all .25s ease;
+    z-index: 100;
   }
-  .del-btn:hover { border-color: var(--danger); color: var(--danger); }
+  .copy-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>💻 CodeShare</h1>
+  <h1>CodeShare</h1>
   <p>Code veröffentlichen – mit Syntax-Highlighting, in Echtzeit gespeichert.</p>
 </header>
 
 <main>
 
-  <!-- Upload-Formular -->
-  <section class="card">
-    <h2>Neuen Code hochladen</h2>
-    <form id="uploadForm">
-      <div class="row">
-        <div>
-          <label for="title">Titel</label>
-          <input type="text" id="title" placeholder="z. B. Mein Bubble-Sort" required maxlength="120">
-        </div>
-        <div>
-          <label for="author">Autor (optional)</label>
-          <input type="text" id="author" placeholder="Dein Name" maxlength="60">
-        </div>
-        <div>
-          <label for="language">Sprache</label>
-          <select id="language">
-            <option value="plaintext">Plain Text</option>
-            <option value="javascript">JavaScript</option>
-            <option value="typescript">TypeScript</option>
-            <option value="python">Python</option>
-            <option value="java">Java</option>
-            <option value="csharp">C#</option>
-            <option value="cpp">C++</option>
-            <option value="c">C</option>
-            <option value="go">Go</option>
-            <option value="rust">Rust</option>
-            <option value="php">PHP</option>
-            <option value="ruby">Ruby</option>
-            <option value="swift">Swift</option>
-            <option value="kotlin">Kotlin</option>
-            <option value="html">HTML</option>
-            <option value="css">CSS</option>
-            <option value="sql">SQL</option>
-            <option value="bash">Bash / Shell</option>
-            <option value="json">JSON</option>
-            <option value="yaml">YAML</option>
-            <option value="xml">XML</option>
-            <option value="markdown">Markdown</option>
-          </select>
-        </div>
-      </div>
+  <section class="card collapsible open" id="uploadCard">
+    <div class="collapsible-head" data-toggle="uploadCard">
+      <h2>Neuen Code hochladen</h2>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </div>
+    <div class="collapsible-body">
+      <div class="collapsible-inner">
+        <form id="uploadForm">
+          <div class="row">
+            <div>
+              <label for="title">Titel</label>
+              <input type="text" id="title" placeholder="z. B. Mein Bubble-Sort" required maxlength="120">
+            </div>
+            <div>
+              <label for="author">Autor (optional)</label>
+              <input type="text" id="author" placeholder="Dein Name" maxlength="60">
+            </div>
+            <div>
+              <label for="language">Sprache</label>
+              <select id="language">
+                <option value="plaintext">Plain Text</option>
+                <option value="javascript">JavaScript</option>
+                <option value="typescript">TypeScript</option>
+                <option value="python">Python</option>
+                <option value="java">Java</option>
+                <option value="csharp">C#</option>
+                <option value="cpp">C++</option>
+                <option value="c">C</option>
+                <option value="go">Go</option>
+                <option value="rust">Rust</option>
+                <option value="php">PHP</option>
+                <option value="ruby">Ruby</option>
+                <option value="swift">Swift</option>
+                <option value="kotlin">Kotlin</option>
+                <option value="html">HTML</option>
+                <option value="css">CSS</option>
+                <option value="sql">SQL</option>
+                <option value="bash">Bash / Shell</option>
+                <option value="json">JSON</option>
+                <option value="yaml">YAML</option>
+                <option value="xml">XML</option>
+                <option value="markdown">Markdown</option>
+              </select>
+            </div>
+          </div>
 
-      <label for="code">Code</label>
-      <textarea id="code" placeholder="Füge hier deinen Code ein…" required spellcheck="false"></textarea>
+          <label for="code">Code</label>
+          <textarea id="code" placeholder="Füge hier deinen Code ein…" required spellcheck="false"></textarea>
 
-      <div style="margin-top:16px;">
-        <button type="submit" class="btn" id="submitBtn">🚀 Veröffentlichen</button>
-        <div class="status" id="status"></div>
+          <div style="margin-top:16px;">
+            <button type="submit" class="btn" id="submitBtn">Veröffentlichen</button>
+            <div class="status" id="status"></div>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
   </section>
 
-  <!-- Liste -->
   <section>
-    <h2>Veröffentlichte Codes <span class="count-badge" id="count">0</span></h2>
+    <h2 class="list-title" style="margin-bottom:16px;">
+      Veröffentlichte Codes
+      <span class="count-badge" id="count">0</span>
+    </h2>
     <div id="snippets"></div>
   </section>
 
 </main>
+
+<div class="copy-toast" id="copyToast">In Zwischenablage kopiert</div>
 
 <script>
 /* ============================================================
@@ -281,10 +393,71 @@ const submitBtn   = document.getElementById("submitBtn");
 const statusEl    = document.getElementById("status");
 const listEl      = document.getElementById("snippets");
 const countEl     = document.getElementById("count");
+const toastEl     = document.getElementById("copyToast");
 
-/* ---------- Highlight.js Sprachen registrieren (Lazy via CDN) ---------- */
-// Die Standard-Sprachen sind bereits im Bundle. Für zusätzliche:
-// (hier sind die meisten bereits enthalten)
+/* ============================================================
+   ZUSTAND: welche Snippets sind offen?
+   ============================================================ */
+const openSnippets = new Set();   // IDs der aufgeklappten Snippets
+let lastDataHash = null;          // Hash der zuletzt gerenderten Daten
+let lastEntries  = [];
+
+/* ============================================================
+   COLLAPSIBLE (Upload-Bereich)
+   ============================================================ */
+document.querySelectorAll("[data-toggle]").forEach(head => {
+  head.addEventListener("click", () => {
+    const target = document.getElementById(head.dataset.toggle);
+    if (target) target.classList.toggle("open");
+  });
+});
+
+/* ============================================================
+   STATISTIK-BERECHNUNG
+   ============================================================ */
+function computeStats(code) {
+  const str = code || "";
+  const chars = str.length;
+  const lines = str === "" ? 0 : str.split(/\r\n|\r|\n/).length;
+  const bytes = new Blob([str]).size;
+  const kb = bytes / 1024;
+  return {
+    chars,
+    lines,
+    kb: kb < 0.1 ? bytes + " B" : kb.toFixed(2) + " KB"
+  };
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+let toastTimer;
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1800);
+}
+
+/* ============================================================
+   COPY
+   ============================================================ */
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("In Zwischenablage kopiert");
+  } catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); showToast("In Zwischenablage kopiert"); }
+    catch { showToast("Kopieren fehlgeschlagen"); }
+    document.body.removeChild(ta);
+  }
+}
 
 /* ============================================================
    UPLOAD
@@ -306,7 +479,7 @@ form.addEventListener("submit", async (e) => {
   }
 
   submitBtn.disabled = true;
-  submitBtn.textContent = "⏳ Wird gespeichert…";
+  submitBtn.textContent = "Wird gespeichert…";
 
   const payload = {
     title,
@@ -324,21 +497,22 @@ form.addEventListener("submit", async (e) => {
     });
     if (!res.ok) throw new Error("HTTP " + res.status);
 
-    statusEl.textContent = "✅ Erfolgreich veröffentlicht!";
+    statusEl.textContent = "Erfolgreich veröffentlicht.";
     statusEl.classList.add("ok");
     form.reset();
+    lastDataHash = null; // erzwingt Re-Render beim nächsten Poll
   } catch (err) {
     console.error(err);
-    statusEl.textContent = "❌ Fehler beim Speichern: " + err.message;
+    statusEl.textContent = "Fehler beim Speichern: " + err.message;
     statusEl.classList.add("err");
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = "🚀 Veröffentlichen";
+    submitBtn.textContent = "Veröffentlichen";
   }
 });
 
 /* ============================================================
-   LADEN & RENDERN
+   LADEN
    ============================================================ */
 async function loadSnippets() {
   try {
@@ -350,54 +524,114 @@ async function loadSnippets() {
       .map(([id, val]) => ({ id, ...val }))
       .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
+    // Hash über relevante Felder – verhindert unnötiges Re-Render
+    const hash = JSON.stringify(entries.map(e => [e.id, e.createdAt, e.title, e.author, e.language, e.code]));
+
+    if (hash === lastDataHash) return; // nichts geändert → nichts tun!
+
+    lastDataHash = hash;
+    lastEntries = entries;
     renderSnippets(entries);
   } catch (err) {
     console.error(err);
     listEl.innerHTML = `<div class="empty">Fehler beim Laden: ${escapeHtml(err.message)}</div>`;
+    lastDataHash = null;
   }
 }
 
+/* ============================================================
+   RENDERN
+   ============================================================ */
 function renderSnippets(entries) {
   countEl.textContent = entries.length;
 
   if (entries.length === 0) {
-    listEl.innerHTML = `<div class="empty">Noch keine Codes veröffentlicht. Sei der Erste!</div>`;
+    listEl.innerHTML = `<div class="empty">Noch keine Codes veröffentlicht.</div>`;
     return;
   }
+
+  // Beim Re-Render: openSnippets aus dem DOM nachziehen (falls sich per Klick geändert hat)
+  document.querySelectorAll(".snippet").forEach(el => {
+    if (el.classList.contains("open")) openSnippets.add(el.dataset.id);
+    else openSnippets.delete(el.dataset.id);
+  });
 
   listEl.innerHTML = "";
   for (const s of entries) {
     const el = document.createElement("article");
     el.className = "snippet";
+    el.dataset.id = s.id;
+    if (openSnippets.has(s.id)) el.classList.add("open"); // Zustand wiederherstellen
 
     const dateStr = s.createdAt ? new Date(s.createdAt).toLocaleString("de-DE") : "—";
     const safeLang = escapeHtml(s.language || "plaintext");
+    const stats = computeStats(s.code || "");
 
     el.innerHTML = `
-      <div class="snippet-head">
-        <div>
-          <div class="snippet-title">${escapeHtml(s.title || "Ohne Titel")}</div>
-          <div class="snippet-meta">
-            von ${escapeHtml(s.author || "Anonym")} · ${dateStr}
+      <div class="snippet-head" data-role="toggle">
+        <div class="snippet-info">
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          <div style="min-width:0;flex:1;">
+            <div class="snippet-title">${escapeHtml(s.title || "Ohne Titel")}</div>
+            <div class="snippet-meta">von ${escapeHtml(s.author || "Anonym")} · ${dateStr}</div>
+            <div class="stats">
+              <span>${stats.kb}</span>
+              <span>${stats.lines} ${stats.lines === 1 ? "Zeile" : "Zeilen"}</span>
+              <span>${stats.chars.toLocaleString("de-DE")} Zeichen</span>
+            </div>
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;">
+        <div class="snippet-actions">
           <span class="lang-tag">${safeLang}</span>
-          <button class="del-btn" data-id="${escapeHtml(s.id)}">Löschen</button>
+          <button class="icon-btn" data-action="copy" title="Code kopieren" aria-label="Code kopieren">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+          <button class="icon-btn del" data-action="delete" title="Löschen" aria-label="Löschen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+              <path d="M10 11v6"></path>
+              <path d="M14 11v6"></path>
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+            </svg>
+          </button>
         </div>
       </div>
-      <pre><code class="language-${safeLang}"></code></pre>
+      <div class="snippet-body">
+        <div class="snippet-body-inner">
+          <pre><code class="language-${safeLang}"></code></pre>
+        </div>
+      </div>
     `;
 
     const codeEl = el.querySelector("code");
     codeEl.textContent = s.code || "";
-
-    // Highlight anwenden
     if (window.hljs) {
-      try { hljs.highlightElement(codeEl); } catch(e) { /* Sprache unbekannt */ }
+      try { hljs.highlightElement(codeEl); } catch(e) {}
     }
 
-    el.querySelector(".del-btn").addEventListener("click", () => deleteSnippet(s.id));
+    // Toggle
+    el.querySelector('[data-role="toggle"]').addEventListener("click", (ev) => {
+      if (ev.target.closest("button")) return;
+      el.classList.toggle("open");
+      if (el.classList.contains("open")) openSnippets.add(s.id);
+      else openSnippets.delete(s.id);
+    });
+
+    // Copy
+    el.querySelector('[data-action="copy"]').addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      copyToClipboard(s.code || "");
+    });
+
+    // Delete
+    el.querySelector('[data-action="delete"]').addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      deleteSnippet(s.id);
+    });
 
     listEl.appendChild(el);
   }
@@ -411,6 +645,8 @@ async function deleteSnippet(id) {
   try {
     const res = await fetch(`${DB_URL}${SNIPPETS_PATH}/${id}.json`, { method: "DELETE" });
     if (!res.ok) throw new Error("HTTP " + res.status);
+    openSnippets.delete(id);
+    lastDataHash = null;
     loadSnippets();
   } catch (err) {
     alert("Löschen fehlgeschlagen: " + err.message);
@@ -418,10 +654,10 @@ async function deleteSnippet(id) {
 }
 
 /* ============================================================
-   POLLING (Echtzeit-Ersatz ohne SDK)
+   POLLING
    ============================================================ */
 loadSnippets();
-setInterval(loadSnippets, 5000); // alle 5 Sek. aktualisieren
+setInterval(loadSnippets, 5000);
 
 /* ---------- Helper ---------- */
 function escapeHtml(str) {
