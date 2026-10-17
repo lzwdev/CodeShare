@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeShare – Code veröffentlichen</title>
+
+<!-- Highlight.js für Syntax-Highlighting -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --panel-2: #1f232c;
+    --border: #2a2f3a;
+    --text: #e6e9ef;
+    --muted: #8b93a3;
+    --accent: #4f8cff;
+    --accent-hover: #3a74e0;
+    --danger: #ff5c5c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  header {
+    padding: 28px 20px 10px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    margin: 0 0 6px;
+    font-size: 1.7rem;
+    letter-spacing: -0.5px;
+  }
+  header p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+  main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 28px;
+  }
+
+  label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  input[type="text"], select, textarea {
+    width: 100%;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color .15s;
+  }
+  input[type="text"]:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+  textarea {
+    font-family: "Fira Code", "Consolas", "Menlo", monospace;
+    font-size: 0.9rem;
+    min-height: 240px;
+    resize: vertical;
+    tab-size: 2;
+  }
+
+  .row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .row > div { flex: 1; min-width: 200px; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .btn:hover { background: var(--accent-hover); }
+  .btn:disabled { opacity: .6; cursor: not-allowed; }
+
+  .status {
+    margin-top: 12px;
+    font-size: 0.9rem;
+    min-height: 1.2em;
+  }
+  .status.ok { color: #5ddb8a; }
+  .status.err { color: var(--danger); }
+
+  h2 {
+    font-size: 1.2rem;
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .count-badge {
+    font-size: 0.75rem;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 999px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .snippet {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .snippet-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel-2);
+  }
+  .snippet-title { font-weight: 600; font-size: 1rem; }
+  .snippet-meta { font-size: 0.78rem; color: var(--muted); }
+  .lang-tag {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    background: rgba(79,140,255,.15);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+  .snippet pre {
+    margin: 0;
+    padding: 16px;
+    overflow-x: auto;
+    font-size: 0.85rem;
+  }
+  .snippet pre code.hljs {
+    background: transparent;
+    padding: 0;
+  }
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 30px;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+  }
+  .del-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    cursor: pointer;
+  }
+  .del-btn:hover { border-color: var(--danger); color: var(--danger); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>💻 CodeShare</h1>
+  <p>Code veröffentlichen – mit Syntax-Highlighting, in Echtzeit gespeichert.</p>
+</header>
+
+<main>
+
+  <!-- Upload-Formular -->
+  <section class="card">
+    <h2>Neuen Code hochladen</h2>
+    <form id="uploadForm">
+      <div class="row">
+        <div>
+          <label for="title">Titel</label>
+          <input type="text" id="title" placeholder="z. B. Mein Bubble-Sort" required maxlength="120">
+        </div>
+        <div>
+          <label for="author">Autor (optional)</label>
+          <input type="text" id="author" placeholder="Dein Name" maxlength="60">
+        </div>
+        <div>
+          <label for="language">Sprache</label>
+          <select id="language">
+            <option value="plaintext">Plain Text</option>
+            <option value="javascript">JavaScript</option>
+            <option value="typescript">TypeScript</option>
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+            <option value="csharp">C#</option>
+            <option value="cpp">C++</option>
+            <option value="c">C</option>
+            <option value="go">Go</option>
+            <option value="rust">Rust</option>
+            <option value="php">PHP</option>
+            <option value="ruby">Ruby</option>
+            <option value="swift">Swift</option>
+            <option value="kotlin">Kotlin</option>
+            <option value="html">HTML</option>
+            <option value="css">CSS</option>
+            <option value="sql">SQL</option>
+            <option value="bash">Bash / Shell</option>
+            <option value="json">JSON</option>
+            <option value="yaml">YAML</option>
+            <option value="xml">XML</option>
+            <option value="markdown">Markdown</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="code">Code</label>
+      <textarea id="code" placeholder="Füge hier deinen Code ein…" required spellcheck="false"></textarea>
+
+      <div style="margin-top:16px;">
+        <button type="submit" class="btn" id="submitBtn">🚀 Veröffentlichen</button>
+        <div class="status" id="status"></div>
+      </div>
+    </form>
+  </section>
+
+  <!-- Liste -->
+  <section>
+    <h2>Veröffentlichte Codes <span class="count-badge" id="count">0</span></h2>
+    <div id="snippets"></div>
+  </section>
+
+</main>
+
+<script>
+/* ============================================================
+   FIREBASE REALTIME DATABASE – REST API
+   ============================================================ */
+const DB_URL = "https://data-df966-default-rtdb.europe-west1.firebasedatabase.app";
+const SNIPPETS_PATH = "/snippets";
+
+/* ---------- DOM ---------- */
+const form        = document.getElementById("uploadForm");
+const titleInput  = document.getElementById("title");
+const authorInput = document.getElementById("author");
+const langSelect  = document.getElementById("language");
+const codeInput   = document.getElementById("code");
+const submitBtn   = document.getElementById("submitBtn");
+const statusEl    = document.getElementById("status");
+const listEl      = document.getElementById("snippets");
+const countEl     = document.getElementById("count");
+
+/* ---------- Highlight.js Sprachen registrieren (Lazy via CDN) ---------- */
+// Die Standard-Sprachen sind bereits im Bundle. Für zusätzliche:
+// (hier sind die meisten bereits enthalten)
+
+/* ============================================================
+   UPLOAD
+   ============================================================ */
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  statusEl.textContent = "";
+  statusEl.className = "status";
+
+  const title = titleInput.value.trim();
+  const author = authorInput.value.trim();
+  const language = langSelect.value;
+  const code = codeInput.value;
+
+  if (!title || !code) {
+    statusEl.textContent = "Bitte Titel und Code ausfüllen.";
+    statusEl.classList.add("err");
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = "⏳ Wird gespeichert…";
+
+  const payload = {
+    title,
+    author: author || "Anonym",
+    language,
+    code,
+    createdAt: Date.now()
+  };
+
+  try {
+    const res = await fetch(`${DB_URL}${SNIPPETS_PATH}.json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+
+    statusEl.textContent = "✅ Erfolgreich veröffentlicht!";
+    statusEl.classList.add("ok");
+    form.reset();
+  } catch (err) {
+    console.error(err);
+    statusEl.textContent = "❌ Fehler beim Speichern: " + err.message;
+    statusEl.classList.add("err");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "🚀 Veröffentlichen";
+  }
+});
+
+/* ============================================================
+   LADEN & RENDERN
+   ============================================================ */
+async function loadSnippets() {
+  try {
+    const res = await fetch(`${DB_URL}${SNIPPETS_PATH}.json`);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json() || {};
+
+    const entries = Object.entries(data)
+      .map(([id, val]) => ({ id, ...val }))
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+    renderSnippets(entries);
+  } catch (err) {
+    console.error(err);
+    listEl.innerHTML = `<div class="empty">Fehler beim Laden: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderSnippets(entries) {
+  countEl.textContent = entries.length;
+
+  if (entries.length === 0) {
+    listEl.innerHTML = `<div class="empty">Noch keine Codes veröffentlicht. Sei der Erste!</div>`;
+    return;
+  }
+
+  listEl.innerHTML = "";
+  for (const s of entries) {
+    const el = document.createElement("article");
+    el.className = "snippet";
+
+    const dateStr = s.createdAt ? new Date(s.createdAt).toLocaleString("de-DE") : "—";
+    const safeLang = escapeHtml(s.language || "plaintext");
+
+    el.innerHTML = `
+      <div class="snippet-head">
+        <div>
+          <div class="snippet-title">${escapeHtml(s.title || "Ohne Titel")}</div>
+          <div class="snippet-meta">
+            von ${escapeHtml(s.author || "Anonym")} · ${dateStr}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="lang-tag">${safeLang}</span>
+          <button class="del-btn" data-id="${escapeHtml(s.id)}">Löschen</button>
+        </div>
+      </div>
+      <pre><code class="language-${safeLang}"></code></pre>
+    `;
+
+    const codeEl = el.querySelector("code");
+    codeEl.textContent = s.code || "";
+
+    // Highlight anwenden
+    if (window.hljs) {
+      try { hljs.highlightElement(codeEl); } catch(e) { /* Sprache unbekannt */ }
+    }
+
+    el.querySelector(".del-btn").addEventListener("click", () => deleteSnippet(s.id));
+
+    listEl.appendChild(el);
+  }
+}
+
+/* ============================================================
+   LÖSCHEN
+   ============================================================ */
+async function deleteSnippet(id) {
+  if (!confirm("Diesen Code wirklich löschen?")) return;
+  try {
+    const res = await fetch(`${DB_URL}${SNIPPETS_PATH}/${id}.json`, { method: "DELETE" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    loadSnippets();
+  } catch (err) {
+    alert("Löschen fehlgeschlagen: " + err.message);
+  }
+}
+
+/* ============================================================
+   POLLING (Echtzeit-Ersatz ohne SDK)
+   ============================================================ */
+loadSnippets();
+setInterval(loadSnippets, 5000); // alle 5 Sek. aktualisieren
+
+/* ---------- Helper ---------- */
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+</script>
+</body>
+</html>
